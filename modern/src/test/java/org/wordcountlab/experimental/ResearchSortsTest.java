@@ -21,7 +21,7 @@ class ResearchSortsTest {
         for(String method:ALL) {
             ResearchSorts.Result actual=ResearchSorts.sort(input,method);
             assertArrayEquals(expected,actual.values(),method);
-            assertTrue(actual.comparisons()>=0);
+            assertTrue(actual.comparisons()>=0 || method.equals("jdk-native"));
             assertEquals(before,ResearchSorts.digest(input),"input mutated by "+method);
             if(method.equals("crypto")) {
                 assertEquals(before,actual.inputSha256());
@@ -59,6 +59,40 @@ class ResearchSortsTest {
                 assertArrayEquals(reference,ResearchSorts.sort(data,method).values(),method+" "+dataset);
         }
     }
+    @Test void denseFrequencySortingAndSparseFallbackBothMatchOracle() {
+        Frequency[] dense=new Frequency[5000];
+        Random rng=new Random(123);
+        for(int i=0;i<dense.length;i++)
+            dense[i]=new Frequency("w"+String.format("%05d",i),1+rng.nextInt(32));
+        // Including lexical ties with identical counts, worst-case repeated frequencies.
+        oracle(dense);
+        assertEquals("freqbucket->histogram+lexical-tie-sort",
+            ResearchSorts.sort(dense,"freqbucket").implementation());
+        Frequency[] sparse={
+            new Frequency("z",Integer.MAX_VALUE),
+            new Frequency("a",1),new Frequency("b",1),new Frequency("c",987654321)};
+        oracle(sparse);
+        assertEquals("freqbucket->merge(sparse-frequency-range)",
+            ResearchSorts.sort(sparse,"freqbucket").implementation());
+    }
+    @Test void wctHasMonotoneFastPathsWithoutChangingCorrectness() {
+        Frequency[] sorted=ExperimentLab.generated("sorted",4096,7);
+        Frequency[] reversed=ExperimentLab.generated("reverse",4096,7);
+        var a=ResearchSorts.sort(sorted,"wct");
+        var b=ResearchSorts.sort(reversed,"wct");
+        assertArrayEquals(sorted,a.values());
+        assertArrayEquals(sorted,b.values());
+        assertEquals(4095,a.comparisons());
+        assertEquals(0,a.writes());
+        assertEquals(4095,b.comparisons());
+    }
+    @Test void directComparatorAgreesWithReferenceOnExtremeCounts() {
+        Frequency[] cases={
+            new Frequency("z",Integer.MAX_VALUE),new Frequency("a",1),
+            new Frequency("x",Integer.MAX_VALUE),new Frequency("À",17),
+            new Frequency("a",17),new Frequency("b",17)};
+        oracle(cases);
+    }
     @Test void transcriptHashIsDomainSeparatedAndDetectsChanges() {
         Frequency[] original={new Frequency("a",2),new Frequency("b",1)};
         String hash=ResearchSorts.digest(original);
@@ -82,6 +116,9 @@ class ResearchSortsTest {
         assertTrue(actual.out.contains("hybrid->"));
         assertTrue(actual.out.contains("sha256+merge"));
         assertTrue(actual.out.contains("expected_sha256="));
+        assertTrue(actual.out.contains("freqbucket->histogram"));
+        assertTrue(actual.out.contains("jdk-native,"));
+        assertTrue(actual.out.contains("ratio_to_jdk_native"));
     }
     @Test void csvLikeOutputSkipsQuadraticControlForLargeInputs() {
         Capture actual=run("--dataset","equal","--size","4097","--runs","1","--warmup","0",
