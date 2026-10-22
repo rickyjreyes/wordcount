@@ -38,7 +38,7 @@ public final class ResearchSorts {
         String implementation=method;
         String in=null,out=null;
         switch (method) {
-            case "jdk" -> Arrays.sort(a,meter::compare);
+            case "jdk" -> { Arrays.sort(a,meter::compare); meter.writes=-1; }
             case "merge" -> merge(a,new Frequency[a.length],0,a.length,meter);
             case "insertion" -> insertion(a,0,a.length,meter);
             case "wct" -> curvatureBlocks(a,meter);
