@@ -83,3 +83,17 @@ java -cp modern/target/wordcount-lab-1.0.0.jar org.wordcountlab.experimental.Exp
 The [first experimental screening report](docs/EXPERIMENTAL_RESULTS_2026-10-22.md) archives correctness and benchmark results, including candidate underperformance. Future competitive claims require controlled replication (see issue #2).
 
 The [optimized performance screening](docs/EXPERIMENTAL_RESULTS_OPTIMIZED_2026-10-22.md) adds a domain-specific frequency-bucket control and records both positive and negative results against native Java and Merge, including the earlier baseline's limitations. This does not establish a new general sorting algorithm.
+
+## Expanded competitive baselines and separate Top-K task
+
+The [competitive-controls protocol](docs/COMPETITIVE_CONTROLS.md) adds **stable LSD radix**, **sparse frequency buckets**, **PDQ-inspired 3-way introsort** (not an upstream pdqsort port), and **native Java parallel sorting**. Added adversarial data: Zipf-like frequencies, sparse integer ranges, Unicode words and long shared lexical prefixes. All full sorts must match the original frequency-DESC/word-ASC reference.
+
+Top-K is benchmarked **separately** against full sorting plus truncation, as it intentionally returns only the requested K items:
+
+```sh
+java -cp modern/target/wordcount-lab-1.0.0.jar org.wordcountlab.experimental.TopKLab --dataset random --size 8192 --top 10 --seed 2017 --runs 7 --warmup 2
+```
+
+Previously reported CI timings remain historical screening measurements, **not** a new verified ranking after these competitors are introduced.
+
+The [expanded competition screening](docs/COMPETITIVE_SCREENING_2026-10-22.md) records the new full-sort rankings and **separate** Top-K results, including unfavorable cases.

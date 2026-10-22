@@ -13,7 +13,7 @@ public final class ExperimentLab {
     private ExperimentLab() {}
     private static final int MAX_SIZE=100_000;
     private static final List<String> DATASETS=
-        List.of("random","sorted","reverse","nearly","few-counts","equal","runs");
+        List.of("random","sorted","reverse","nearly","few-counts","equal","runs","zipf","sparse","unicode","prefix");
 
     public static void main(String[] args) {
         System.exit(run(args,System.out,System.err));
@@ -67,7 +67,7 @@ public final class ExperimentLab {
         }
         return out;
     }
-    private static Frequency[] fromFile(Path input) throws IOException {
+    static Frequency[] fromFile(Path input) throws IOException {
         Map<String,Integer> counts=new HashMap<>();
         for(String token:Tokens.read(input)) counts.merge(token,1,Integer::sum);
         return counts.entrySet().stream().map(e->new Frequency(e.getKey(),e.getValue()))
@@ -79,12 +79,23 @@ public final class ExperimentLab {
         Random rng=new Random(seed);
         Frequency[] values=new Frequency[n];
         for(int i=0;i<n;i++)
-            values[i]=new Frequency(String.format(Locale.ROOT,"word%06d",i),
-                dataset.equals("equal")?1:dataset.equals("few-counts")?1+rng.nextInt(4):1+rng.nextInt(1000));
+            values[i]=new Frequency(
+                switch(dataset) {
+                    case "unicode" -> new String[]{"café","東京","Ωmega","naïve","éclair","🐈"}[i%6]+String.format(Locale.ROOT,"%06d",i);
+                    case "prefix" -> "interoperability-internationalization-shared-prefix-"+String.format(Locale.ROOT,"%06d",i);
+                    default -> String.format(Locale.ROOT,"word%06d",i);
+                },
+                switch(dataset) {
+                    case "equal" -> 1;
+                    case "few-counts" -> 1+rng.nextInt(4);
+                    case "sparse" -> 1+(int)(10003L*(i+1)); // <=1.001e9 at MAX_SIZE
+                    case "zipf" -> 1+(int)Math.round(1_000_000.0/Math.pow(i+1,1.10));
+                    default -> 1+rng.nextInt(1000);
+                });
         Arrays.sort(values,Sorts.ORDER);
         switch(dataset) {
             case "reverse" -> reverse(values,0,n);
-            case "random","few-counts","equal" -> shuffle(values,rng);
+            case "random","few-counts","equal","zipf","sparse","unicode","prefix" -> shuffle(values,rng);
             case "nearly" -> {
                 for(int i=0;i<n/100;i++) {
                     if(n<2)break;
@@ -176,9 +187,9 @@ public final class ExperimentLab {
     }
     private static void usage(PrintStream out) {
         out.println("WordCount Lab experimental competition (Java 17)");
-        out.println("  --dataset random|sorted|reverse|nearly|few-counts|equal|runs [--size N] [--seed N]");
+        out.println("  --dataset random|sorted|reverse|nearly|few-counts|equal|runs|zipf|sparse|unicode|prefix [--size N] [--seed N]");
         out.println("  OR --input UTF8_FILE");
-        out.println("  [--methods all|jdk-native,jdk,merge,insertion,freqbucket,wct,rca,prime,crypto,hybrid] [--runs 7] [--warmup 2]");
+        out.println("  [--methods all|jdk-native,jdk,merge,insertion,freqbucket,radix,sparsebucket,pdq,parallel,wct,rca,prime,crypto,hybrid] [--runs 7] [--warmup 2]");
         out.println("Execution: java -cp modern/target/wordcount-lab-1.0.0.jar org.wordcountlab.experimental.ExperimentLab ...");
         out.println("Correctness checked against independent JDK sort. Insertion skipped if N > 4096. Max N=100000.");
     }

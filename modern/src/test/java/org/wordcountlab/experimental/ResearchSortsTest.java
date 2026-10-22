@@ -21,7 +21,7 @@ class ResearchSortsTest {
         for(String method:ALL) {
             ResearchSorts.Result actual=ResearchSorts.sort(input,method);
             assertArrayEquals(expected,actual.values(),method);
-            assertTrue(actual.comparisons()>=0 || method.equals("jdk-native"));
+            assertTrue(actual.comparisons()>=0 || method.equals("jdk-native") || method.equals("parallel"));
             assertEquals(before,ResearchSorts.digest(input),"input mutated by "+method);
             if(method.equals("crypto")) {
                 assertEquals(before,actual.inputSha256());
@@ -47,15 +47,15 @@ class ResearchSortsTest {
         }
     }
     @Test void adversarialDatasetsAndSizes() {
-        for(String dataset:List.of("random","sorted","reverse","nearly","few-counts","equal","runs"))
+        for(String dataset:List.of("random","sorted","reverse","nearly","few-counts","equal","runs","zipf","sparse","unicode","prefix"))
             for(int size:new int[]{0,1,2,3,7,17,32,33,63,64,65,127,256,1024})
                 oracle(ExperimentLab.generated(dataset,size,2017));
     }
     @Test void largerPrimeAndHybridRemainCorrect() {
-        for(String dataset:List.of("sorted","reverse","random","few-counts")) {
+        for(String dataset:List.of("sorted","reverse","random","few-counts","zipf","sparse","unicode","prefix")) {
             Frequency[] data=ExperimentLab.generated(dataset,8192,42);
             Frequency[] reference=data.clone();Arrays.sort(reference,Sorts.ORDER);
-            for(String method:List.of("prime","hybrid","rca","wct"))
+            for(String method:List.of("prime","hybrid","rca","wct","radix","sparsebucket","pdq","parallel"))
                 assertArrayEquals(reference,ResearchSorts.sort(data,method).values(),method+" "+dataset);
         }
     }
@@ -95,6 +95,30 @@ class ResearchSortsTest {
         assertEquals("hybrid->rca-natural-runs",ordered.implementation());
         var reverse=ResearchSorts.sort(ExperimentLab.generated("reverse",2048,2017),"hybrid");
         assertEquals("hybrid->rca-natural-runs",reverse.implementation());
+    }
+    @Test void newCompetitorsRetainExtremeValidCountOrderingAndTies() {
+        Frequency[] cases={
+            new Frequency("zz",1),new Frequency("a",Integer.MAX_VALUE),
+            new Frequency("é",Integer.MAX_VALUE),new Frequency("aa",2),
+            new Frequency("東京",1),new Frequency("a",Integer.MAX_VALUE),
+            new Frequency("Ω",17),new Frequency("🐈",17),
+            new Frequency("z",7),new Frequency("z",7)
+        };
+        oracle(cases);
+        for(String method:List.of("radix","sparsebucket","pdq","parallel")) {
+            var result=ResearchSorts.sort(cases,method);
+            assertFalse(result.implementation().isBlank());
+        }
+        assertEquals("radix->lexical-presort+stable-LSD32",
+            ResearchSorts.sort(cases,"radix").implementation());
+    }
+    @Test void sparseBucketsDoNotUseDenseHistogramForExtremePositiveGaps() {
+        Frequency[] input=new Frequency[2000];
+        for(int i=0;i<input.length;i++)
+            input[i]=new Frequency("record"+i,(i%2==0)?Integer.MAX_VALUE-i:1+i);
+        oracle(input);
+        assertEquals("sparsebucket->hash-group+sorted-counts+lexical-ties",
+            ResearchSorts.sort(input,"sparsebucket").implementation());
     }
     @Test void directComparatorAgreesWithReferenceOnExtremeCounts() {
         Frequency[] cases={
