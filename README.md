@@ -79,3 +79,5 @@ An optional [research sorting competition](docs/RESEARCH_SORTING.md) now compare
 mvn -B -f modern/pom.xml verify
 java -cp modern/target/wordcount-lab-1.0.0.jar org.wordcountlab.experimental.ExperimentLab --dataset random --size 2048 --seed 2017 --runs 7 --warmup 2
 ```
+
+The [first experimental screening report](docs/EXPERIMENTAL_RESULTS_2026-10-22.md) archives correctness and benchmark results, including candidate underperformance. Future competitive claims require controlled replication (see issue #2).
