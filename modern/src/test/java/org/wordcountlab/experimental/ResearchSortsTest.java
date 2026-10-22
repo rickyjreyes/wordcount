@@ -86,6 +86,16 @@ class ResearchSortsTest {
         assertEquals(0,a.writes());
         assertEquals(4095,b.comparisons());
     }
+    @Test void hybridDisclosesAndVerifiesItsDispatch() {
+        var dense=ResearchSorts.sort(ExperimentLab.generated("random",8192,2017),"hybrid");
+        assertEquals("hybrid->freqbucket->histogram+lexical-tie-sort",dense.implementation());
+        var sparse=ResearchSorts.sort(ExperimentLab.generated("few-counts",2048,2017),"hybrid");
+        assertEquals("hybrid->prime-introsort",sparse.implementation());
+        var ordered=ResearchSorts.sort(ExperimentLab.generated("sorted",2048,2017),"hybrid");
+        assertEquals("hybrid->rca-natural-runs",ordered.implementation());
+        var reverse=ResearchSorts.sort(ExperimentLab.generated("reverse",2048,2017),"hybrid");
+        assertEquals("hybrid->rca-natural-runs",reverse.implementation());
+    }
     @Test void directComparatorAgreesWithReferenceOnExtremeCounts() {
         Frequency[] cases={
             new Frequency("z",Integer.MAX_VALUE),new Frequency("a",1),
