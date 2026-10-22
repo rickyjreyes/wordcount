@@ -15,20 +15,24 @@ import java.util.*;
  */
 public final class ResearchSorts {
     public static final List<String> METHODS =
-        List.of("jdk-native", "jdk", "merge", "insertion", "freqbucket", "wct", "rca", "prime", "crypto", "hybrid");
+        List.of("jdk-native", "jdk", "merge", "insertion", "freqbucket", "radix", "sparsebucket", "pdq", "parallel", "wct", "rca", "prime", "crypto", "hybrid");
     private ResearchSorts() {}
-    private static int compareKeys(Frequency a,Frequency b) {
+    static int compareKeys(Frequency a,Frequency b) {
         int countOrder=Integer.compare(b.count(),a.count());
         return countOrder!=0?countOrder:a.word().compareTo(b.word());
     }
 
     public record Result(Frequency[] values, long comparisons, long writes,
                          String implementation, String inputSha256, String outputSha256) {}
-    private static final class Meter {
+    static final class Meter {
         long comparisons, writes;
         int compare(Frequency a, Frequency b) {
             comparisons++;
             return compareKeys(a,b);
+        }
+        int compareWords(Frequency a, Frequency b) {
+            comparisons++;
+            return a.word().compareTo(b.word());
         }
         void swap(Frequency[] a, int i, int j) {
             if (i == j) return;
@@ -47,6 +51,10 @@ public final class ResearchSorts {
             case "merge" -> merge(a,new Frequency[a.length],0,a.length,meter);
             case "insertion" -> insertion(a,0,a.length,meter);
             case "freqbucket" -> { implementation=frequencyBuckets(a,meter); }
+            case "radix" -> { implementation=CompetitiveSorts.radix(a,meter); }
+            case "sparsebucket" -> { implementation=CompetitiveSorts.sparseBucket(a,meter); }
+            case "pdq" -> { implementation=CompetitiveSorts.pdq(a,meter); }
+            case "parallel" -> { implementation=CompetitiveSorts.parallel(a,meter); }
             case "wct" -> curvatureBlocks(a,meter);
             case "rca" -> naturalRuns(a,meter);
             case "prime" -> primeIntro(a,meter);
@@ -138,7 +146,7 @@ public final class ResearchSorts {
         while(j<high) { temp[k++]=a[j++];m.writes++; }
         System.arraycopy(temp,low,a,low,high-low);m.writes+=high-low;
     }
-    private static void insertion(Frequency[] a,int low,int high,Meter m) {
+    static void insertion(Frequency[] a,int low,int high,Meter m) {
         for(int i=low+1;i<high;i++) {
             Frequency value=a[i];int j=i-1;
             while(j>=low&&m.compare(a[j],value)>0) { a[j+1]=a[j];m.writes++;j--; }
@@ -272,7 +280,7 @@ public final class ResearchSorts {
         for(int p=2;p<length;p++)if(prime(p)&&gcd(p,length)==1)return p;
         return 1; // unreachable for introsort's length > 24
     }
-    private static void heap(Frequency[] a,int lo,int hi,Meter m) {
+    static void heap(Frequency[] a,int lo,int hi,Meter m) {
         int n=hi-lo;
         for(int i=n/2-1;i>=0;i--)sift(a,lo,n,i,m);
         for(int end=n-1;end>0;end--) { m.swap(a,lo,lo+end);sift(a,lo,end,0,m); }
