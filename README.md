@@ -97,3 +97,7 @@ java -cp modern/target/wordcount-lab-1.0.0.jar org.wordcountlab.experimental.Top
 Previously reported CI timings remain historical screening measurements, **not** a new verified ranking after these competitors are introduced.
 
 The [expanded competition screening](docs/COMPETITIVE_SCREENING_2026-10-22.md) records the new full-sort rankings and **separate** Top-K results, including unfavorable cases.
+
+## Thorough validation, classical controls and JMH
+
+The [thorough validation protocol](docs/THOROUGH_VALIDATION.md) adds independent classic Bubble, Cocktail, Comb, Selection, Shell, Quick and Heap controls (completing all nine methods in the [MIT-licensed SortingAlgorithmAnimations comparison](https://github.com/vbohush/SortingAlgorithmAnimations), used as a reference only), multi-seed raw CSV timing and a separate, forked [JMH benchmark module](modern/benchmarks/). Original coursework and the upstream animation GUI are not modified or copied. GitHub's [Scientific Sorting Validation](.github/workflows/validation.yml) workflow archives machine metadata and raw results, and offers a manual extended profile. Do not rank animation frame rates as sorting performance or confuse preliminary CI screening with a general speed breakthrough.
