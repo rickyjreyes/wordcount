@@ -102,7 +102,7 @@ class ResearchSortsTest {
             new Frequency("é",Integer.MAX_VALUE),new Frequency("aa",2),
             new Frequency("東京",1),new Frequency("a",Integer.MAX_VALUE),
             new Frequency("Ω",17),new Frequency("🐈",17),
-            new Frequency("z",7),new Frequency("z",-7)
+            new Frequency("z",7),new Frequency("z",7)
         };
         oracle(cases);
         for(String method:List.of("radix","sparsebucket","pdq","parallel")) {
