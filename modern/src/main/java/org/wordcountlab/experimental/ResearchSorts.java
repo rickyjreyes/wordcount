@@ -15,7 +15,7 @@ import java.util.*;
  */
 public final class ResearchSorts {
     public static final List<String> METHODS =
-        List.of("jdk", "merge", "insertion", "wct", "rca", "prime", "crypto", "hybrid");
+        List.of("jdk", "merge", "insertion", "freqbucket", "wct", "rca", "prime", "crypto", "hybrid");
     private ResearchSorts() {}
 
     public record Result(Frequency[] values, long comparisons, long writes,
@@ -41,6 +41,7 @@ public final class ResearchSorts {
             case "jdk" -> { Arrays.sort(a,meter::compare); meter.writes=-1; }
             case "merge" -> merge(a,new Frequency[a.length],0,a.length,meter);
             case "insertion" -> insertion(a,0,a.length,meter);
+            case "freqbucket" -> { implementation=frequencyBuckets(a,meter); }
             case "wct" -> curvatureBlocks(a,meter);
             case "rca" -> naturalRuns(a,meter);
             case "prime" -> primeIntro(a,meter);
@@ -68,6 +69,50 @@ public final class ResearchSorts {
             default -> throw new IllegalArgumentException(method);
         }
         return new Result(a,meter.comparisons,meter.writes,implementation,in,out);
+    }
+    /**
+     * Domain-specialized exact sort. Dense counts: linear histogram scattering by
+     * descending integer count; alphabetically sort each equal-count segment.
+     * The histogram and tie-sort are BOTH included in timed execution.
+     * Sparse range is explicitly attributed to the conventional merge fallback.
+     * Unlike comparison sorting, integers can be bucketed, but words still
+     * require sorting for ties. This is a conventional specialization, not WCT.
+     */
+    private static String frequencyBuckets(Frequency[] a, Meter m) {
+        final int n=a.length;
+        if(n<2)return "freqbucket->trivial";
+        int min=Integer.MAX_VALUE,max=Integer.MIN_VALUE;
+        for(Frequency f:a) { min=Math.min(min,f.count());max=Math.max(max,f.count()); }
+        long width=(long)max-min+1;
+        if(width>1_000_000L || width>Math.max(4096L,4L*n)) {
+            merge(a,new Frequency[n],0,n,m);
+            return "freqbucket->merge(sparse-frequency-range)";
+        }
+        int slots=(int)width;
+        int[] offsets=new int[slots];
+        for(Frequency f:a)offsets[max-f.count()]++;
+        int start=0;
+        for(int i=0;i<slots;i++) {
+            int size=offsets[i];
+            offsets[i]=start;
+            start+=size;
+        }
+        // Assign frequency buckets without comparisons. Reconstruct boundaries
+        // from final positions; sorted order is count DESC, word ASC within ties.
+        Frequency[] grouped=new Frequency[n];
+        for(Frequency f:a) { grouped[offsets[max-f.count()]++]=f;m.writes++; }
+        Frequency[] scratch=new Frequency[n];
+        int low=0;
+        for(int i=0;i<slots;i++) {
+            int high=offsets[i];
+            if(high-low>1) {
+                if(high-low<=24) insertion(grouped,low,high,m);
+                else merge(grouped,scratch,low,high,m);
+            }
+            low=high;
+        }
+        System.arraycopy(grouped,0,a,0,n);m.writes+=n;
+        return "freqbucket->histogram+lexical-tie-sort";
     }
     /** Own baseline mergesort; never silently falls back to a JDK sort. */
     private static void merge(Frequency[] a, Frequency[] temp, int low, int high, Meter m) {
