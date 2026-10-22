@@ -50,6 +50,17 @@ class ThoroughLabTest {
             assertTrue(summary.contains(method+",,SKIPPED_QUADRATIC"),method);
         assertTrue(summary.contains("merge,merge,PASS"));
     }
+    @Test void commaInCryptoImplementationIsProperlyQuotedInCsv() throws Exception {
+        Path output=temp.resolve("crypto");
+        Run r=call("--datasets","random","--sizes","16","--seeds","2017",
+            "--methods","merge,crypto","--runs","1","--warmup","0","--out",output.toString());
+        assertEquals(0,r.code(),r.err());
+        String raw=Files.readString(output.resolve("samples.csv"));
+        String summary=Files.readString(output.resolve("summary.csv"));
+        String quoted="\"sha256+merge (audit wrapper, not a new sort)\"";
+        assertTrue(raw.contains(quoted));
+        assertTrue(summary.contains(quoted));
+    }
     @Test void percentileAndBadArguments() {
         assertEquals(100,ThoroughLab.percentile(new long[]{100},.5));
         assertEquals(25,ThoroughLab.percentile(new long[]{0,100},.25));
