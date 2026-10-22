@@ -59,3 +59,5 @@ The first hosted screening, including negative results, is archived in [EXPERIME
 5. **Negative result:** a consistently slower correct algorithm remains a useful falsification; do not change the comparator, exclude costly work selectively or suppress failures.
 
 Note: the archived first screening used the *instrumented* JDK baseline and the earlier WCT cursor-heap method. Later performance revisions must report against both uninstrumented JDK and handwritten Merge, with results saved separately. No benchmark results are frozen in this document. Hosted CI includes a small smoke matrix to verify execution, not to establish performance superiority.
+
+A follow-up [optimized screening](EXPERIMENTAL_RESULTS_OPTIMIZED_2026-10-22.md) documents frequency-bucket sorting, the reworked WCT block merge, comparator parity, and domain-aware hybrid dispatch. Compare within-run methods only; historical screening is retained unaltered.
