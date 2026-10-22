@@ -58,7 +58,7 @@ public final class ExperimentLab {
     }
     private static List<String> methods(String spec) {
         List<String> out=new ArrayList<>();
-        if(!spec.equals("all"))out.add("jdk");
+        if(!spec.equals("all")){ out.add("jdk-native"); out.add("jdk"); }
         for(String value:(spec.equals("all")?ResearchSorts.METHODS:Arrays.asList(spec.split(",")))) {
             String method=value.trim();
             if(!ResearchSorts.METHODS.contains(method))
@@ -117,9 +117,10 @@ public final class ExperimentLab {
             source,seed,input.length,inputHash,expectedHash);
         out.printf("runs=%d warmup=%d; includes copy, algorithm and optional crypto digest; excludes verification/printing%n",
             runs,warmup);
-        out.println("method,implementation,status,median_ms,ratio_to_jdk,comparisons,writes");
+        out.println("method,implementation,status,median_ms,ratio_to_jdk_native,comparisons,writes");
         List<String> selected=new ArrayList<>(new LinkedHashSet<>(methods));
-        if(!selected.contains("jdk"))selected.add(0,"jdk");
+        if(!selected.contains("jdk-native"))selected.add(0,"jdk-native");
+        if(!selected.contains("jdk"))selected.add(Math.min(1,selected.size()),"jdk");
         List<String> runnable=new ArrayList<>();
         for(String method:selected) {
             if(method.equals("insertion")&&input.length>4096) {
@@ -154,13 +155,13 @@ public final class ExperimentLab {
                 }
             }
         }
-        double jdk=median(timings.get("jdk"));
+        double jdk=median(timings.get("jdk-native"));
         for(String method:runnable) {
             ResearchSorts.Result result=example.get(method);
             double elapsed=median(timings.get(method));
-            out.printf(Locale.ROOT,"%s,%s,PASS,%.6f,%.3f,%d,%s%n",
+            out.printf(Locale.ROOT,"%s,%s,PASS,%.6f,%.3f,%s,%s%n",
                 method,result.implementation(),elapsed/1e6,jdk==0?0:elapsed/jdk,
-                result.comparisons(),result.writes()<0?"N/A":Long.toString(result.writes()));
+                result.comparisons()<0?"N/A":Long.toString(result.comparisons()),result.writes()<0?"N/A":Long.toString(result.writes()));
         }
         out.println("Interpretation: these are prototypes; no speedup, novelty, WCT-PDE derivation, or cryptographic security is implied.");
         return 0;
@@ -177,7 +178,7 @@ public final class ExperimentLab {
         out.println("WordCount Lab experimental competition (Java 17)");
         out.println("  --dataset random|sorted|reverse|nearly|few-counts|equal|runs [--size N] [--seed N]");
         out.println("  OR --input UTF8_FILE");
-        out.println("  [--methods all|jdk,merge,insertion,wct,rca,prime,crypto,hybrid] [--runs 7] [--warmup 2]");
+        out.println("  [--methods all|jdk-native,jdk,merge,insertion,freqbucket,wct,rca,prime,crypto,hybrid] [--runs 7] [--warmup 2]");
         out.println("Execution: java -cp modern/target/wordcount-lab-1.0.0.jar org.wordcountlab.experimental.ExperimentLab ...");
         out.println("Correctness checked against independent JDK sort. Insertion skipped if N > 4096. Max N=100000.");
     }
