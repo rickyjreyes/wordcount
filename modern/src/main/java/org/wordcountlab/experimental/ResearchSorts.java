@@ -136,43 +136,53 @@ public final class ResearchSorts {
         }
     }
     /**
-     * WCT-inspired discrete order-gradient/curvature *heuristic*, not WCT PDE evolution.
-     * Split at gradient-sign changes, locally sort blocks, then exact k-way merge.
-     * Complexity O(n log n), with block-heap overhead; correctness is independent of heuristic.
+     * WCT-inspired discrete sign-change defect heuristic, not WCT PDE evolution.
+     * Collect block boundaries BEFORE modifying the input; detect globally ordered
+     * sequences at the same time. Sort blocks and merge consecutive blocks in
+     * rounds with ONE reusable scratch array (no per-record priority queue).
      */
     private static void curvatureBlocks(Frequency[] a,Meter m) {
         final int minBlock=16,maxBlock=64,defectThreshold=4;
         int n=a.length;if(n<2)return;
-        ArrayList<int[]> blocks=new ArrayList<>();
+        List<int[]> blocks=new ArrayList<>();
         int start=0,defects=0,previous=0;
+        boolean nondecreasing=true,nonincreasing=true;
         for(int i=1;i<n;i++) {
             int sign=Integer.signum(m.compare(a[i-1],a[i]));
-            if(i>start+1&&sign!=previous) defects++;
+            if(sign>0)nondecreasing=false;
+            if(sign<0)nonincreasing=false;
+            if(i<=start) { previous=0;continue; } // crossing an existing block boundary
+            if(i>start+1 && sign!=previous) defects++;
             previous=sign;
             int length=i-start+1;
             if(length>=maxBlock || (length>=minBlock&&defects>=defectThreshold)) {
                 int end=i+1;
-                mergeRange(a,start,end,m);
                 blocks.add(new int[]{start,end});
                 start=end;defects=0;previous=0;
             }
         }
-        if(start<n) { mergeRange(a,start,n,m);blocks.add(new int[]{start,n}); }
-        if(blocks.size()<2)return;
-        record Cursor(int index,int end) {}
-        PriorityQueue<Cursor> queue=new PriorityQueue<>((x,y)->m.compare(a[x.index],a[y.index]));
-        for(int[] block:blocks) queue.add(new Cursor(block[0],block[1]));
-        Frequency[] output=new Frequency[n];int j=0;
-        while(!queue.isEmpty()) {
-            Cursor c=queue.remove();
-            output[j++]=a[c.index];m.writes++;
-            if(c.index+1<c.end) queue.add(new Cursor(c.index+1,c.end));
+        if(nondecreasing)return;
+        if(nonincreasing) {
+            for(int x=0,y=n-1;x<y;x++,y--)m.swap(a,x,y);
+            return;
         }
-        System.arraycopy(output,0,a,0,n);m.writes+=n;
-    }
-    private static void mergeRange(Frequency[] a,int lo,int hi,Meter m) {
-        if(hi-lo<=32) insertion(a,lo,hi,m);
-        else merge(a,new Frequency[a.length],lo,hi,m);
+        if(start<n)blocks.add(new int[]{start,n});
+        Frequency[] scratch=new Frequency[n];
+        for(int[] block:blocks) {
+            if(block[1]-block[0]<=24)insertion(a,block[0],block[1],m);
+            else merge(a,scratch,block[0],block[1],m);
+        }
+        while(blocks.size()>1) {
+            List<int[]> next=new ArrayList<>((blocks.size()+1)/2);
+            for(int j=0;j<blocks.size();j+=2) {
+                int[] left=blocks.get(j);
+                if(j+1==blocks.size()) { next.add(left);continue; }
+                int[] right=blocks.get(j+1);
+                mergeSegments(a,scratch,left[0],left[1],right[1],m);
+                next.add(new int[]{left[0],right[1]});
+            }
+            blocks=next;
+        }
     }
     /**
      * RCA-inspired bounded feedback: natural run discovery/reversal followed by pairwise
