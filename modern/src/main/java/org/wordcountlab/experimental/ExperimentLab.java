@@ -67,7 +67,8 @@ public final class ExperimentLab {
         return out;
     }
     private static Frequency[] fromFile(Path input) throws IOException {
-        Map<String,Integer> counts=WordCountLab.reference(Tokens.read(input));
+        Map<String,Integer> counts=new HashMap<>();
+        for(String token:Tokens.read(input)) counts.merge(token,1,Integer::sum);
         return counts.entrySet().stream().map(e->new Frequency(e.getKey(),e.getValue()))
             .sorted(Comparator.comparing(Frequency::word)).toArray(Frequency[]::new);
     }
