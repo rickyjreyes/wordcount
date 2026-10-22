@@ -15,7 +15,7 @@ import java.util.*;
  */
 public final class ResearchSorts {
     public static final List<String> METHODS =
-        List.of("jdk-native", "jdk", "merge", "insertion", "freqbucket", "radix", "sparsebucket", "pdq", "parallel", "wct", "rca", "prime", "crypto", "hybrid");
+        List.of("jdk-native", "jdk", "merge", "insertion", "freqbucket", "radix", "sparsebucket", "pdq", "parallel", "selection", "shell", "quick", "heap", "bubble", "comb", "cocktail", "wct", "rca", "prime", "crypto", "hybrid");
     private ResearchSorts() {}
     static int compareKeys(Frequency a,Frequency b) {
         int countOrder=Integer.compare(b.count(),a.count());
@@ -55,6 +55,13 @@ public final class ResearchSorts {
             case "sparsebucket" -> { implementation=CompetitiveSorts.sparseBucket(a,meter); }
             case "pdq" -> { implementation=CompetitiveSorts.pdq(a,meter); }
             case "parallel" -> { implementation=CompetitiveSorts.parallel(a,meter); }
+            case "selection" -> { implementation=ClassicSorts.selection(a,meter); }
+            case "shell" -> { implementation=ClassicSorts.shell(a,meter); }
+            case "quick" -> { implementation=ClassicSorts.quick(a,meter); }
+            case "heap" -> { implementation=ClassicSorts.heap(a,meter); }
+            case "bubble" -> { implementation=ClassicSorts.bubble(a,meter); }
+            case "comb" -> { implementation=ClassicSorts.comb(a,meter); }
+            case "cocktail" -> { implementation=ClassicSorts.cocktail(a,meter); }
             case "wct" -> curvatureBlocks(a,meter);
             case "rca" -> naturalRuns(a,meter);
             case "prime" -> primeIntro(a,meter);
