@@ -24,3 +24,9 @@ jobs:
         run: |
           java -jar modern/target/wordcount-lab-1.0.0.jar compare --input sample_text/hamlet.txt
           java -jar modern/target/wordcount-lab-1.0.0.jar count --input sample_text/hamlet.txt --top 5
+      - name: Verify experimental sorting competitors and audit
+        run: |
+          java -cp modern/target/wordcount-lab-1.0.0.jar org.wordcountlab.experimental.ExperimentLab --dataset random --size 512 --seed 2017 --runs 2 --warmup 0
+          java -cp modern/target/wordcount-lab-1.0.0.jar org.wordcountlab.experimental.ExperimentLab --dataset sorted --size 512 --seed 2017 --runs 2 --warmup 0
+          java -cp modern/target/wordcount-lab-1.0.0.jar org.wordcountlab.experimental.ExperimentLab --dataset reverse --size 512 --seed 2017 --runs 2 --warmup 0
+          java -cp modern/target/wordcount-lab-1.0.0.jar org.wordcountlab.experimental.ExperimentLab --input sample_text/hamlet.txt --methods jdk,merge,wct,rca,prime,crypto,hybrid --runs 2 --warmup 0
