@@ -41,3 +41,5 @@ java -cp modern/target/wordcount-lab-1.0.0.jar org.wordcountlab.experimental.Top
 ## Benchmarks and scientific interpretation
 
 The CI matrix is an exploratory regression screen with identical seeded records, seven measured iterations and two warmups for its primary cases. Results should be reported with source revision, data shape, JVM/CPU, sorting-only versus end-to-end timings, error bars where available, all preprocessing and fallback attribution. Direct the controlled JMH benchmark effort to issue #2. An improvement against Merge alone is insufficient when Radix, sparse buckets, native Java and parallel sorting could be stronger on different distributions. 
+
+The first expanded [CI screening and exact results](COMPETITIVE_SCREENING_2026-10-22.md) is archived separately. It is not a JMH-grade or multi-host performance claim.
