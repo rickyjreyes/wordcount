@@ -95,3 +95,5 @@ java -cp modern/target/wordcount-lab-1.0.0.jar org.wordcountlab.experimental.Top
 ```
 
 Previously reported CI timings remain historical screening measurements, **not** a new verified ranking after these competitors are introduced.
+
+The [expanded competition screening](docs/COMPETITIVE_SCREENING_2026-10-22.md) records the new full-sort rankings and **separate** Top-K results, including unfavorable cases.
