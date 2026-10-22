@@ -55,15 +55,20 @@ public final class ResearchSorts {
             }
             case "hybrid" -> {
                 long inversions=0, curvature=0;
-                int previous=0;
+                int previous=0,min=Integer.MAX_VALUE,max=Integer.MIN_VALUE;
+                for(Frequency f:a) { min=Math.min(min,f.count());max=Math.max(max,f.count()); }
                 for(int i=1;i<a.length;i++) {
                     int sign=Integer.signum(meter.compare(a[i-1],a[i]));
                     if(sign>0) inversions++;
                     if(i>1 && sign!=previous) curvature++;
                     previous=sign;
                 }
-                if(inversions<=Math.max(1,a.length/16) && curvature<=Math.max(1,a.length/8)) {
+                long width=a.length==0?0:(long)max-min+1;
+                if(inversions==Math.max(0,a.length-1) ||
+                   (inversions<=Math.max(1,a.length/16) && curvature<=Math.max(1,a.length/8))) {
                     naturalRuns(a,meter); implementation="hybrid->rca-natural-runs";
+                } else if(width>=32 && width<=Math.min(1_000_000L,2L*a.length)) {
+                    implementation="hybrid->"+frequencyBuckets(a,meter);
                 } else {
                     primeIntro(a,meter); implementation="hybrid->prime-introsort";
                 }
