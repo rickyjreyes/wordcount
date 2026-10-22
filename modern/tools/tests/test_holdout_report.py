@@ -36,12 +36,13 @@ class HoldoutReportTest(unittest.TestCase):
 
     def test_failures_not_suppressed(self):
         rows=list(self.rows())
-        rows[0]["median_ns"]="130"
+        for row in rows:
+            if row["method"] == "adaptive-v1":
+                row["median_ns"] = "135"
         _,_,metrics=report.evaluate(rows)
-        self.assertFalse(metrics["P1"] or not metrics["P2"]) if False else None
-        self.assertFalse(metrics["pass"] if sum(
-            x["method"]=="adaptive-v1" and float(x["median_ns"])==130 for x in rows
-        )>100 else False)  # a single setback must be represented without assuming total failure
+        self.assertFalse(metrics["P1"])
+        self.assertFalse(metrics["P2"])
+        self.assertFalse(metrics["pass"])
         self.assertRaises(ValueError,report.evaluate,rows[:-1])
         duplicated=list(self.rows())+[dict(rows[0])]
         self.assertRaises(ValueError,report.evaluate,duplicated)
