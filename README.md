@@ -1,48 +1,72 @@
-# WordCount — Data Structures and Sorting Comparison
+# WordCount / WordCount Lab
 
-A Java coursework project by **Ricky Reyes and Jennifer Earley** for counting word frequencies in text files and comparing storage and sorting approaches. It includes sample literary texts and hand-written data structures/sorts.
+**2017 Java coursework by Richard (Ricky) Reyes and Jennifer Earley**, preserved alongside a new, independently testable companion implementation. This repository is not a retroactive rewrite of the student project.
 
-## Command-line interface
+## Original program (preserved)
 
-The program accepts exactly three arguments: a counting data structure, a sorting method and an input filename.
+The original files in `source_code/` and `sample_text/` remain unchanged. They implement word-frequency counting with a BST, an experimental AVL tree, and a custom hash table, plus insertion, quick and merge sorting.
 
-```text
-java WordCount [-b | -a | -h] [-is | -qs | -ms] <filename>
-```
-
-| Choice | Implementation |
-| --- | --- |
-| `-b` | Unbalanced binary search tree. |
-| `-a` | AVL-tree implementation (see limitations). |
-| `-h` | Separate-chaining hash table (see limitations). |
-| `-is` | Insertion sort. |
-| `-qs` | Quick sort. |
-| `-ms` | Merge sort. |
-
-The main program prints count/word pairs and elapsed sorting time in milliseconds. Sorting is by frequency, with ordering and tie behavior depending on the selected algorithm.
-
-## Build and example
-
-From the repository root with a JDK installed:
+With a JDK installed, from the repository root:
 
 ```sh
 javac source_code/*.java
 java -cp source_code WordCount -b -ms sample_text/hamlet.txt
-java -cp source_code WordCount -b -qs sample_text/the-new-atlantis.txt
 ```
 
-On Windows, compile the Java files from `source_code/` with your preferred shell or IDE. Input words are processed through `FileWordReader`, which lowercases words and tokenizes them using Java's `StreamTokenizer`.
+Original syntax: `java WordCount [-b | -a | -h] [-is | -qs | -ms] <filename>`
 
-## Layout
+| Flag | Meaning |
+| --- | --- |
+| `-b` | Unbalanced BST |
+| `-a` | Original experimental AVL |
+| `-h` | Original experimental hash table |
+| `-is`, `-qs`, `-ms` | Insertion, quick, merge sorting |
 
-- `source_code/WordCount.java` — CLI, count selection, sorting and output.
-- `source_code/DataCounter.java` — counting interface and data/count record.
-- `source_code/BinarySearchTree.java` — basic BST counter.
-- `source_code/AVLTree.java` — experimental AVL extension.
-- `source_code/HashTable.java` — experimental custom hash table.
-- `source_code/FileWordReader.java` — file tokenization.
-- `sample_text/hamlet.txt`, `sample_text/the-new-atlantis.txt` — sample inputs.
+**Historical caveat:** This original implementation is coursework, not a verified benchmark. The AVL insertion paths can bypass balancing, the hash table can mishandle collisions/repeated keys and enumerate duplicate entries, and sort tie behavior varies. Keep the historical program for study; use the modern companion for verified comparisons. The 2017 baseline is commit `8dbb861fc355ccfc384ea5ea2d50530cada48bab`; the first documentation-only update was in October 2026.
 
-## Important limitations
+## WordCount Lab (modern companion)
 
-This is an educational snapshot, not a validated benchmark library. In particular, the checked-in `AVLTree.incCount` returns early on insertions and may bypass its intended rebalancing; the hash table's insertion/count traversal and `getCounts` can mishandle repeated keys and bucket contents. The sorting implementations also have differing tie behavior. Use the BST path to explore the interface, and independently verify counts and sort output before using any implementation for comparisons or timing claims. No automated test suite or explicit license is included.
+Requires **Java 17+** and **Maven**. The `modern/` implementation preserves the original teaching goals while adding correct, separate implementations of BST, AVL and resizing hash table, plus deterministic insertion/quick/merge sorting.
+
+```sh
+mvn -B -f modern/pom.xml verify
+java -jar modern/target/wordcount-lab-1.0.0.jar count --input sample_text/hamlet.txt --structure avl --sort merge --top 20
+java -jar modern/target/wordcount-lab-1.0.0.jar compare --input sample_text/hamlet.txt
+java -jar modern/target/wordcount-lab-1.0.0.jar benchmark --input sample_text/hamlet.txt --warmup 3 --runs 10
+java -jar modern/target/wordcount-lab-1.0.0.jar analyze --input sample_text/hamlet.txt --top 25
+java -jar modern/target/wordcount-lab-1.0.0.jar count --input sample_text/hamlet.txt --output csv --top 25
+```
+
+### Command reference
+
+| Command | Behavior |
+| --- | --- |
+| `count --input FILE [--structure bst|avl|hash] [--sort insertion|quick|merge] [--top N] [--output text|csv]` | Count and deterministically sort frequencies; validates against a Java HashMap before output |
+| `compare --input FILE` | Validate all 3 counters and all 3 sorts against independent standard-library references |
+| `benchmark --input FILE [--warmup N] [--runs N]` | Count-only median timing and throughput, after pre-tokenizing the same input |
+| `analyze --input FILE [--top N]` | Total tokens, distinct tokens, type/token lexical diversity, most frequent words |
+
+Defaults: hash counter, merge sort, top 25, 3 warmups, 10 measured runs. The modern tokenizer reads UTF-8, normalizes NFC, uses Unicode letters/numbers, preserves internal apostrophes, and lowercases with `Locale.ROOT`. It deliberately differs from the historical Java `StreamTokenizer`; do **not** compare raw count totals across these two modes without normalizing tokenization first. Empty input is supported.
+
+Every modern counter must return exactly one entry per unique word with the same frequencies as `HashMap`. Every sorting algorithm uses frequency descending, then word ascending (ties). The modern implementation intentionally has no runtime dependency beyond the JDK; JUnit is only a test dependency.
+
+### Benchmark boundaries
+
+The benchmark excludes tokenization, sorting and console output from reported count times; read/tokenization time is shown separately. It includes structure construction and count retrieval, uses `System.nanoTime()`, warmups and a median. Runtime depends on hardware, JVM, GC and input order. This is an educational comparative runner, **not** a JMH-grade microbenchmark or a scientifically controlled performance claim. `compare` and the test suite should pass before interpreting benchmarks.
+
+## Project layout
+
+```text
+source_code/             Original 2017 Java sources, unchanged
+sample_text/             Original Hamlet and New Atlantis inputs, unchanged
+modern/pom.xml           Java 17 Maven companion
+modern/src/main/java/    Corrected counting, sorting, Unicode tokenizer, CLI
+modern/src/test/java/    JUnit regression and equivalence tests
+.github/workflows/       Build and test automation
+docs/HISTORY.md          Original attribution and preservation policy
+docs/ROADMAP.md          Follow-on feature plan
+```
+
+## Attribution and licensing
+
+The original coursework is credited to Ricky Reyes and Jennifer Earley. Modern additions are documented separately. The repository has **no explicit software license**; public visibility alone does not grant reuse rights. Adding a license should be done with appropriate contributor approval. See [HISTORY](docs/HISTORY.md).
