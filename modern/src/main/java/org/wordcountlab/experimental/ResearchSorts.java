@@ -15,7 +15,7 @@ import java.util.*;
  */
 public final class ResearchSorts {
     public static final List<String> METHODS =
-        List.of("jdk-native", "jdk", "merge", "insertion", "freqbucket", "radix", "sparsebucket", "pdq", "parallel", "selection", "shell", "quick", "heap", "bubble", "comb", "cocktail", "wct", "rca", "prime", "crypto", "hybrid");
+        List.of("jdk-native", "jdk", "merge", "insertion", "freqbucket", "radix", "sparsebucket", "pdq", "parallel", "selection", "shell", "quick", "heap", "bubble", "comb", "cocktail", "wct", "rca", "prime", "crypto", "hybrid", "adaptive-v1");
     private ResearchSorts() {}
     static int compareKeys(Frequency a,Frequency b) {
         int countOrder=Integer.compare(b.count(),a.count());
@@ -71,6 +71,7 @@ public final class ResearchSorts {
                 out=digest(a);
                 implementation="sha256+merge (audit wrapper, not a new sort)";
             }
+            case "adaptive-v1" -> implementation=AdaptiveSelector.sort(a,meter);
             case "hybrid" -> {
                 long inversions=0, curvature=0;
                 int previous=0,min=Integer.MAX_VALUE,max=Integer.MIN_VALUE;
@@ -103,7 +104,7 @@ public final class ResearchSorts {
      * Unlike comparison sorting, integers can be bucketed, but words still
      * require sorting for ties. This is a conventional specialization, not WCT.
      */
-    private static String frequencyBuckets(Frequency[] a, Meter m) {
+    static String frequencyBuckets(Frequency[] a, Meter m) {
         final int n=a.length;
         if(n<2)return "freqbucket->trivial";
         int min=Integer.MAX_VALUE,max=Integer.MIN_VALUE;
@@ -140,7 +141,7 @@ public final class ResearchSorts {
         return "freqbucket->histogram+lexical-tie-sort";
     }
     /** Own baseline mergesort; never silently falls back to a JDK sort. */
-    private static void merge(Frequency[] a, Frequency[] temp, int low, int high, Meter m) {
+    static void merge(Frequency[] a, Frequency[] temp, int low, int high, Meter m) {
         if(high-low<2) return;
         int mid=low+(high-low)/2;
         merge(a,temp,low,mid,m); merge(a,temp,mid,high,m);

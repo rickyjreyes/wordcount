@@ -24,16 +24,16 @@ import java.util.concurrent.TimeUnit;
 @Measurement(iterations=7,time=1,timeUnit=TimeUnit.SECONDS)
 @Fork(value=2)
 public class FullSortBenchmark {
-    @Param({"random","zipf","sparse","equal","sorted","reverse","unicode","prefix"})
+    @Param({"random","zipf","sparse","equal","sorted","reverse","unicode","prefix","staircase","alternating","clusters"})
     public String dataset;
 
     @Param({"2048","8192","32768"})
     public int n;
 
-    @Param({"2017","42","73","101","4099"})
+    @Param({"2017","42","73","101","4099","65537","9001","20261"})
     public int seed;
 
-    @Param({"freqbucket","merge","jdk-native","radix","sparsebucket","pdq","parallel","hybrid"})
+    @Param({"freqbucket","merge","jdk-native","radix","sparsebucket","pdq","parallel","hybrid","adaptive-v1"})
     public String algorithm;
 
     private Frequency[] input;

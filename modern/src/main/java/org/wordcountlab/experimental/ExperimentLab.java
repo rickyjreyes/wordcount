@@ -13,7 +13,7 @@ public final class ExperimentLab {
     private ExperimentLab() {}
     private static final int MAX_SIZE=100_000;
     private static final List<String> DATASETS=
-        List.of("random","sorted","reverse","nearly","few-counts","equal","runs","zipf","sparse","unicode","prefix");
+        List.of("random","sorted","reverse","nearly","few-counts","equal","runs","zipf","sparse","unicode","prefix","staircase","alternating","clusters");
 
     public static void main(String[] args) {
         System.exit(run(args,System.out,System.err));
@@ -90,12 +90,15 @@ public final class ExperimentLab {
                     case "few-counts" -> 1+rng.nextInt(4);
                     case "sparse" -> 1+(int)(10003L*(i+1)); // <=1.001e9 at MAX_SIZE
                     case "zipf" -> 1+(int)Math.round(1_000_000.0/Math.pow(i+1,1.10));
+                    case "staircase" -> 1+5*(i/8);
+                    case "alternating" -> i%2==0?1:1_000_001;
+                    case "clusters" -> i%10==0?1_000_001+i:1+rng.nextInt(96);
                     default -> 1+rng.nextInt(1000);
                 });
         Arrays.sort(values,Sorts.ORDER);
         switch(dataset) {
             case "reverse" -> reverse(values,0,n);
-            case "random","few-counts","equal","zipf","sparse","unicode","prefix" -> shuffle(values,rng);
+            case "random","few-counts","equal","zipf","sparse","unicode","prefix","staircase","alternating","clusters" -> shuffle(values,rng);
             case "nearly" -> {
                 for(int i=0;i<n/100;i++) {
                     if(n<2)break;
@@ -187,9 +190,9 @@ public final class ExperimentLab {
     }
     private static void usage(PrintStream out) {
         out.println("WordCount Lab experimental competition (Java 17)");
-        out.println("  --dataset random|sorted|reverse|nearly|few-counts|equal|runs|zipf|sparse|unicode|prefix [--size N] [--seed N]");
+        out.println("  --dataset random|sorted|reverse|nearly|few-counts|equal|runs|zipf|sparse|unicode|prefix|staircase|alternating|clusters [--size N] [--seed N]");
         out.println("  OR --input UTF8_FILE");
-        out.println("  [--methods all|jdk-native,jdk,merge,insertion,freqbucket,radix,sparsebucket,pdq,parallel,selection,shell,quick,heap,bubble,comb,cocktail,wct,rca,prime,crypto,hybrid] [--runs 7] [--warmup 2]");
+        out.println("  [--methods all|jdk-native,jdk,merge,insertion,freqbucket,radix,sparsebucket,pdq,parallel,selection,shell,quick,heap,bubble,comb,cocktail,wct,rca,prime,crypto,hybrid,adaptive-v1] [--runs 7] [--warmup 2]");
         out.println("Execution: java -cp modern/target/wordcount-lab-1.0.0.jar org.wordcountlab.experimental.ExperimentLab ...");
         out.println("Correctness checked against independent JDK sort. Insertion, Selection, Bubble and Cocktail skipped if N > 4096. Max N=100000.");
     }
