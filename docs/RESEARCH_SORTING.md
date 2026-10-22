@@ -15,7 +15,7 @@ java -cp modern/target/wordcount-lab-1.0.0.jar org.wordcountlab.experimental.Exp
 
 Datasets: `random`, `sorted`, `reverse`, `nearly`, `few-counts` (1–4 counts), `equal` (all counts equal; words break ties), `runs` (local sorted runs of up to 64). Generator seed is recorded. For file input, the app counts with the existing modern UTF-8 tokenizer, then shuffles distinct frequencies with the recorded seed so accidental Map iteration order does not favor a candidate.
 
-- All algorithms use **frequency descending, word ascending**.
+- All algorithms use **frequency descending, word ascending**. The competitive `jdk-native` control invokes the same direct key comparator without meters; the independent correctness oracle uses the separately defined `Sorts.ORDER` comparator.
 - The independent JDK comparator sort is the exact reference oracle.
 - Every result must match that full output array, which also establishes multiset preservation under this total order. Any disagreement aborts the report.
 - Sorting/copying and, for crypto mode, hashing are timed. Dataset generation, file decoding, warmups, verification and printing are excluded. All methods have comparison counters; JDK internal writes are not instrumented (N/A).
@@ -27,7 +27,7 @@ Datasets: `random`, `sorted`, `reverse`, `nearly`, `few-counts` (1–4 counts), 
 
 | Method | Concrete operation | Provenance / classification |
 | --- | --- | --- |
-| `jdk-native` | Uninstrumented JDK comparator `Arrays.sort`; timing includes array clone; operation counts N/A | **Primary competitive library baseline** |
+| `jdk-native` | Uninstrumented JDK `Arrays.sort` using the SAME direct key comparator as all candidates, without operation counters; timing includes array clone; operation counts N/A | **Primary competitive library baseline** |
 | `jdk` | JDK comparator `Arrays.sort` on objects, with comparisons instrumented | Established instrumented library baseline |
 | `merge` | Handwritten stable top-down merge | Established algorithm baseline |
 | `insertion` | Handwritten adjacent shifts | Established quadratic algorithm baseline |
