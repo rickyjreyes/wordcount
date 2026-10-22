@@ -41,6 +41,7 @@ public final class ExperimentLab {
             int warmup=number(opts,"--warmup",2,0,10);
             Frequency[] input=opts.containsKey("--input")?fromFile(Path.of(opts.get("--input"))):generated(dataset,size,seed);
             if(input.length>MAX_SIZE)throw new IllegalArgumentException("At most "+MAX_SIZE+" unique items are supported");
+            if(opts.containsKey("--input")) shuffle(input,new Random(seed)); // fixed-seed order prevents accidental map-order bias
             List<String> methods=methods(opts.getOrDefault("--methods","all"));
             return benchmark(input,methods,runs,warmup,out,err,
                 opts.containsKey("--input")?"file:"+opts.get("--input"):dataset,seed);
