@@ -46,6 +46,8 @@ Define total-order inversion count for an input permutation `a` as
 
 The exact sorted result is characterized by `V(a)=0`. The implementations do **not** repeatedly compute this quadratic potential during timing. It serves as an independent correctness interpretation; the actual oracle test checks the complete sorted array. Natural-run merging decreases the number of runs in each round, yielding `O(n log r)` comparisons for `r` initial runs and worst-case `O(n log n)`. WCT block sorting followed by heap merging has a comparison bound of `O(n log n)`, but can have substantial heap/allocations overhead. Prime-introsort uses a heap fallback for guarded comparison complexity; its on-demand prime-stride selection adds additional computation not captured by comparison counts. None violates the comparison-model `Ω(n log n)` worst-case lower bound for sorting arbitrary distinct keys.
 
+The first hosted screening, including negative results, is archived in [EXPERIMENTAL_RESULTS_2026-10-22.md](EXPERIMENTAL_RESULTS_2026-10-22.md). It is not a performance claim.
+
 ## Competition / falsification criteria
 
 1. **Correctness gate:** exhaustive small permutations, generated adversarial input shapes, fixed-seed random tests, same JDK oracle and cryptographic transcript integrity checks.
