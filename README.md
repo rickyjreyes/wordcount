@@ -70,3 +70,12 @@ docs/ROADMAP.md          Follow-on feature plan
 ## Attribution and licensing
 
 The original coursework is credited to Ricky Reyes and Jennifer Earley. Modern additions are documented separately. The repository has **no explicit software license**; public visibility alone does not grant reuse rights. Adding a license should be done with appropriate contributor approval. See [HISTORY](docs/HISTORY.md).
+
+## Experimental algorithm competition
+
+An optional [research sorting competition](docs/RESEARCH_SORTING.md) now compares separate WCT-inspired, RCA-inspired, Prime Engine-inspired, cryptographically audited and hybrid prototypes against JDK/merge/insertion controls. It preserves the exact original comparator and fails on incorrect results. These are experimental heuristics and wrappers, **not established research-performance or cryptographic-security claims**.
+
+```sh
+mvn -B -f modern/pom.xml verify
+java -cp modern/target/wordcount-lab-1.0.0.jar org.wordcountlab.experimental.ExperimentLab --dataset random --size 2048 --seed 2017 --runs 7 --warmup 2
+```
