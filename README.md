@@ -81,3 +81,5 @@ java -cp modern/target/wordcount-lab-1.0.0.jar org.wordcountlab.experimental.Exp
 ```
 
 The [first experimental screening report](docs/EXPERIMENTAL_RESULTS_2026-10-22.md) archives correctness and benchmark results, including candidate underperformance. Future competitive claims require controlled replication (see issue #2).
+
+The [optimized performance screening](docs/EXPERIMENTAL_RESULTS_OPTIMIZED_2026-10-22.md) adds a domain-specific frequency-bucket control and records both positive and negative results against native Java and Merge, including the earlier baseline's limitations. This does not establish a new general sorting algorithm.
