@@ -132,7 +132,7 @@ public final class ThoroughLab {
                 }
                 timings.get(method)[i]=elapsed;
                 raw.printf(Locale.ROOT,"%s,%d,%d,%s,%s,%d,%d,%s,%s,%d,%d,%d%n",
-                    shape,size,seed,method,result.implementation(),i,elapsed,hash,expectedHash,range,counts.size(),largest);
+                    shape,size,seed,method,csv(result.implementation()),i,elapsed,hash,expectedHash,range,counts.size(),largest);
             }
         }
         double merge=percentile(timings.get("merge"),.5);
@@ -140,7 +140,7 @@ public final class ThoroughLab {
             String method=entry.getKey();
             long[] observations=entry.getValue();
             summary.printf(Locale.ROOT,"%s,%d,%d,%s,%s,PASS,%d,%.1f,%.1f,%.1f,%d,%d,%.6f,%s,%s,%d,%d,%d%n",
-                shape,size,seed,method,implementations.get(method),runs,
+                shape,size,seed,method,csv(implementations.get(method)),runs,
                 percentile(observations,.5),percentile(observations,.1),percentile(observations,.9),
                 Arrays.stream(observations).min().orElseThrow(),Arrays.stream(observations).max().orElseThrow(),
                 percentile(observations,.5)/merge,hash,expectedHash,range,counts.size(),largest);
@@ -158,6 +158,10 @@ public final class ThoroughLab {
         double position=p*(sorted.length-1);
         int low=(int)Math.floor(position),high=(int)Math.ceil(position);
         return sorted[low]+(sorted[high]-sorted[low])*(position-low);
+    }
+    private static String csv(String value) {
+        return value.indexOf(',')>=0 || value.indexOf('"')>=0 || value.indexOf('\n')>=0
+            ? "\"" + value.replace("\"","\"\"") + "\"" : value;
     }
     private static List<String> parse(String value) {
         List<String> out=new ArrayList<>();
