@@ -134,8 +134,8 @@ public final class ExperimentLab {
         if(!selected.contains("jdk"))selected.add(Math.min(1,selected.size()),"jdk");
         List<String> runnable=new ArrayList<>();
         for(String method:selected) {
-            if(method.equals("insertion")&&input.length>4096) {
-                out.println("insertion,insertion,SKIPPED_QUADRATIC,,,,");
+            if(List.of("insertion","selection","bubble","cocktail").contains(method)&&input.length>4096) {
+                out.println(method+","+method+",SKIPPED_QUADRATIC,,,,");
             } else runnable.add(method);
         }
         Map<String,long[]> timings=new HashMap<>();
@@ -189,8 +189,8 @@ public final class ExperimentLab {
         out.println("WordCount Lab experimental competition (Java 17)");
         out.println("  --dataset random|sorted|reverse|nearly|few-counts|equal|runs|zipf|sparse|unicode|prefix [--size N] [--seed N]");
         out.println("  OR --input UTF8_FILE");
-        out.println("  [--methods all|jdk-native,jdk,merge,insertion,freqbucket,radix,sparsebucket,pdq,parallel,wct,rca,prime,crypto,hybrid] [--runs 7] [--warmup 2]");
+        out.println("  [--methods all|jdk-native,jdk,merge,insertion,freqbucket,radix,sparsebucket,pdq,parallel,selection,shell,quick,heap,bubble,comb,cocktail,wct,rca,prime,crypto,hybrid] [--runs 7] [--warmup 2]");
         out.println("Execution: java -cp modern/target/wordcount-lab-1.0.0.jar org.wordcountlab.experimental.ExperimentLab ...");
-        out.println("Correctness checked against independent JDK sort. Insertion skipped if N > 4096. Max N=100000.");
+        out.println("Correctness checked against independent JDK sort. Insertion, Selection, Bubble and Cocktail skipped if N > 4096. Max N=100000.");
     }
 }
