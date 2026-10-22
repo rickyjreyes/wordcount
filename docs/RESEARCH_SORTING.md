@@ -27,10 +27,12 @@ Datasets: `random`, `sorted`, `reverse`, `nearly`, `few-counts` (1–4 counts), 
 
 | Method | Concrete operation | Provenance / classification |
 | --- | --- | --- |
-| `jdk` | JDK comparator `Arrays.sort` on objects | Established library baseline |
+| `jdk-native` | Uninstrumented JDK comparator `Arrays.sort`; timing includes array clone; operation counts N/A | **Primary competitive library baseline** |
+| `jdk` | JDK comparator `Arrays.sort` on objects, with comparisons instrumented | Established instrumented library baseline |
 | `merge` | Handwritten stable top-down merge | Established algorithm baseline |
 | `insertion` | Handwritten adjacent shifts | Established quadratic algorithm baseline |
-| `wct` | Compute discrete adjacent order-gradient signs and changes (a curvature proxy); split into bounded blocks at defect thresholds, sort each block, k-way heap merge the blocks | **WCT-inspired heuristic**; *not* WCT PDE evolution, confinement theorem, or a novel proven sorting complexity |
+| `freqbucket` | Count-frequency histogram when key range is dense, then exact lexical tie sorting; explicit fallback to Merge for sparse ranges | **Conventional domain-specialized baseline**, not a research-theory result |
+| `wct` | Compute discrete adjacent order-gradient signs and changes (a curvature proxy); split into bounded blocks at defect thresholds, sort each block, then pairwise merge adjacent blocks with shared scratch memory; global monotonic fast paths | **WCT-inspired heuristic**; *not* WCT PDE evolution, confinement theorem, or a novel proven sorting complexity |
 | `rca` | Detect ordered/reverse-ordered natural runs, reverse strict descending runs, and pairwise merge neighboring runs until only one remains | **RCA-inspired monotone run-count feedback**; is a natural mergesort, not a newly proven RCA sorting theorem |
 | `prime` | Pick a median-of-three pivot at prime-stride sample positions coprime to partition length, do 3-way partitioning, insertion-sort small partitions, and heap-sort at introspective depth cap | **Prime Engine-inspired pivot schedule**; essentially an introsort variant, not a claim of surpassing standard comparison-sort bounds |
 | `crypto` | Canonically length-prefix each word and count, domain-separate and SHA-256 hash input and output around handwritten merge | **Cryptographic audit wrapper**, not an independent sorting algorithm or a signature; full correctness still requires checking against the oracle |
@@ -44,7 +46,7 @@ Define total-order inversion count for an input permutation `a` as
 
 `V(a) = #{(i,j): i < j and compare(a[i],a[j]) > 0}`.
 
-The exact sorted result is characterized by `V(a)=0`. The implementations do **not** repeatedly compute this quadratic potential during timing. It serves as an independent correctness interpretation; the actual oracle test checks the complete sorted array. Natural-run merging decreases the number of runs in each round, yielding `O(n log r)` comparisons for `r` initial runs and worst-case `O(n log n)`. WCT block sorting followed by heap merging has a comparison bound of `O(n log n)`, but can have substantial heap/allocations overhead. Prime-introsort uses a heap fallback for guarded comparison complexity; its on-demand prime-stride selection adds additional computation not captured by comparison counts. None violates the comparison-model `Ω(n log n)` worst-case lower bound for sorting arbitrary distinct keys.
+The exact sorted result is characterized by `V(a)=0`. The implementations do **not** repeatedly compute this quadratic potential during timing. It serves as an independent correctness interpretation; the actual oracle test checks the complete sorted array. Natural-run merging decreases the number of runs in each round, yielding `O(n log r)` comparisons for `r` initial runs and worst-case `O(n log n)`. WCT block sorting followed by consecutive block merging has a comparison bound of `O(n log n)`, but can have substantial heap/allocations overhead. Prime-introsort uses a heap fallback for guarded comparison complexity; its on-demand prime-stride selection adds additional computation not captured by comparison counts. None violates the comparison-model `Ω(n log n)` worst-case lower bound for sorting arbitrary distinct keys.
 
 The first hosted screening, including negative results, is archived in [EXPERIMENTAL_RESULTS_2026-10-22.md](EXPERIMENTAL_RESULTS_2026-10-22.md). It is not a performance claim.
 
@@ -56,4 +58,4 @@ The first hosted screening, including negative results, is archived in [EXPERIME
 4. **Attribution:** distinguish *new algorithm*, *heuristic variation*, *dispatch strategy*, *audit property* and *established sorting baseline*. Improvement in a restricted dataset is not a new general complexity class.
 5. **Negative result:** a consistently slower correct algorithm remains a useful falsification; do not change the comparator, exclude costly work selectively or suppress failures.
 
-No benchmark results are frozen in this document. Hosted CI includes a small smoke matrix to verify execution, not to establish performance superiority.
+Note: the archived first screening used the *instrumented* JDK baseline and the earlier WCT cursor-heap method. Later performance revisions must report against both uninstrumented JDK and handwritten Merge, with results saved separately. No benchmark results are frozen in this document. Hosted CI includes a small smoke matrix to verify execution, not to establish performance superiority.
