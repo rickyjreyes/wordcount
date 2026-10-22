@@ -1,0 +1,26 @@
+name: Java
+on:
+  push:
+    branches: [master, "feature/**"]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+          cache-dependency-path: modern/pom.xml
+      - name: Compile historical coursework (unaltered)
+        run: javac source_code/*.java
+      - name: Test and package modern companion
+        run: mvn -B -f modern/pom.xml verify
+      - name: Smoke test modern CLI on historical sample
+        run: |
+          java -jar modern/target/wordcount-lab-1.0.0.jar compare --input sample_text/hamlet.txt
+          java -jar modern/target/wordcount-lab-1.0.0.jar count --input sample_text/hamlet.txt --top 5
