@@ -23,11 +23,11 @@ public final class ThoroughLab {
     private static final Set<String> QUADRATIC=Set.of("insertion","selection","bubble","cocktail");
     private static final List<String> DEFAULT_METHODS=List.of(
         "jdk-native","merge","freqbucket","radix","sparsebucket","pdq","parallel",
-        "quick","heap","shell","comb","wct","rca","prime","hybrid"
+        "quick","heap","shell","comb","wct","rca","prime","hybrid","adaptive-v1"
     );
     private static final List<String> DATASETS=List.of(
         "random","sorted","reverse","nearly","few-counts","equal","runs",
-        "zipf","sparse","unicode","prefix"
+        "zipf","sparse","unicode","prefix","staircase","alternating","clusters"
     );
     public static void main(String[] args) {System.exit(run(args,System.out,System.err));}
     static int run(String[] args, java.io.PrintStream out,java.io.PrintStream err) {
