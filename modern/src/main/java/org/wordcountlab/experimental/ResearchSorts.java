@@ -15,7 +15,7 @@ import java.util.*;
  */
 public final class ResearchSorts {
     public static final List<String> METHODS =
-        List.of("jdk", "merge", "insertion", "freqbucket", "wct", "rca", "prime", "crypto", "hybrid");
+        List.of("jdk-native", "jdk", "merge", "insertion", "freqbucket", "wct", "rca", "prime", "crypto", "hybrid");
     private ResearchSorts() {}
 
     public record Result(Frequency[] values, long comparisons, long writes,
@@ -24,7 +24,8 @@ public final class ResearchSorts {
         long comparisons, writes;
         int compare(Frequency a, Frequency b) {
             comparisons++;
-            return Sorts.ORDER.compare(a,b);
+            int countOrder=Integer.compare(b.count(),a.count());
+            return countOrder!=0?countOrder:a.word().compareTo(b.word());
         }
         void swap(Frequency[] a, int i, int j) {
             if (i == j) return;
@@ -38,6 +39,7 @@ public final class ResearchSorts {
         String implementation=method;
         String in=null,out=null;
         switch (method) {
+            case "jdk-native" -> { Arrays.sort(a,Sorts.ORDER);meter.comparisons=-1;meter.writes=-1; }
             case "jdk" -> { Arrays.sort(a,meter::compare); meter.writes=-1; }
             case "merge" -> merge(a,new Frequency[a.length],0,a.length,meter);
             case "insertion" -> insertion(a,0,a.length,meter);
